@@ -16,7 +16,8 @@
 - Telnet: 23 TCP
 - SMB: 445 TCP
 - DNS: 53 UDP
-- SNMP: 1812
+- SNMP traps: 162 UDP
+- SNMP manager: 161 UDP
 - DHCP server listen: 67 UDP
 - DHCP client receive: 68 UDP
 - TFTP: 69 UDP
