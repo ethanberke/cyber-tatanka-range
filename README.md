@@ -183,14 +183,15 @@ Sysinternals is a suite of advanced Windows system utilities developed by Micros
 
 | Tool | Purpose |
 |--------|---------|
+| Autoruns | Identifies programs configured to run automatically at startup |
+| Handle | Identifies which processes have files or resources open |
 | Process Explorer | Advanced process monitoring and analysis |
 | Process Monitor (Procmon) | Real-time monitoring of file, registry, process, and network activity |
-| Autoruns | Identifies programs configured to run automatically at startup |
-| TCPView | Displays active network connections and listening ports |
 | PsExec | Executes commands remotely on Windows systems |
-| Handle | Identifies which processes have files or resources open |
-| Sigcheck | Verifies digital signatures and analyzes files |
 | RAMMap | Examines memory usage and allocation |
+|Root Kit Revealer | |
+| Sigcheck | Verifies digital signatures and analyzes files |
+| TCPView | Displays active network connections and listening ports |
 
 
 # Powershell Commands
