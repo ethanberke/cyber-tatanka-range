@@ -1,6 +1,8 @@
 # **Range Topics**
 
 ## Table of Contents
+- [Triage Steps](#triage-steps)
+- [Quick Triage Checklist](#quick-triage-checklist)
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
 - [Security Onion](#security-onion)
@@ -8,21 +10,440 @@
 - [Palo Alto](#palo-alto)
 - [PfSense](#pfsense)
 
+# Triage Steps
 
+## 1. Identify the Problem
+
+### Questions to Answer
+
+```text
+What host is affected?
+What service is affected?
+What time did the issue start?
+What IPs are involved?
+What user account is involved?
+```
+
+---
+
+## 2. Identify Host Information
+
+### Linux (RHEL/Ubuntu)
+
+```bash
+hostname
+ip a
+whoami
+date
+```
+
+### Windows
+
+```powershell
+hostname
+whoami
+ipconfig
+Get-Date
+```
+
+---
+
+## 3. Identify Active Connections
+
+### Linux
+
+Show active connections:
+
+```bash
+ss -tunap
+```
+
+Older systems:
+
+```bash
+netstat -tunap
+```
+
+Look for:
+
+```text
+ESTABLISHED connections
+Unexpected external IPs
+Unknown listening services
+```
+
+### Windows
+
+```powershell
+netstat -ano
+```
+
+Find process owning connection:
+
+```powershell
+tasklist | findstr <PID>
+```
+
+Example:
+
+```powershell
+tasklist | findstr 1234
+```
+
+Look for:
+
+```text
+External IPs
+Suspicious ports
+Unknown processes
+```
+
+---
+
+## 4. Identify Open Ports
+
+### Linux
+
+```bash
+ss -tulpn
+```
+
+or
+
+```bash
+netstat -tulpn
+```
+
+Example output:
+
+```text
+TCP 0.0.0.0:22
+TCP 0.0.0.0:80
+TCP 0.0.0.0:443
+```
+
+Questions:
+
+```text
+Should this port be open?
+Should this service be running?
+```
+
+### Windows
+
+```powershell
+netstat -ano | findstr LISTENING
+```
+
+Match PID to process:
+
+```powershell
+tasklist | findstr <PID>
+```
+
+---
+
+## 5. Identify Running Processes
+
+### Linux
+
+```bash
+ps aux
+```
+
+Sort by CPU:
+
+```bash
+ps aux --sort=-%cpu | head
+```
+
+Sort by Memory:
+
+```bash
+ps aux --sort=-%mem | head
+```
+
+### Windows
+
+```powershell
+tasklist
+```
+
+Detailed view:
+
+```powershell
+Get-Process
+```
+
+---
+
+## 6. Check User Activity
+
+### Linux
+
+Current users:
+
+```bash
+who
+w
+```
+
+Login history:
+
+```bash
+last
+```
+
+Failed logins (Ubuntu):
+
+```bash
+grep "Failed" /var/log/auth.log
+```
+
+Failed logins (RHEL):
+
+```bash
+grep "Failed" /var/log/secure
+```
+
+### Windows
+
+Failed logins:
+
+```powershell
+Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4625}
+```
+
+Recent security events:
+
+```powershell
+Get-WinEvent -LogName Security -MaxEvents 50
+```
+
+---
+
+## 7. Check Logs
+
+### Linux
+
+Authentication:
+
+```text
+/var/log/auth.log
+```
+
+System:
+
+```text
+/var/log/syslog
+```
+
+Live monitoring:
+
+```bash
+tail -f /var/log/syslog
+```
+
+### Windows
+
+Open Event Viewer:
+
+```powershell
+eventvwr.msc
+```
+
+Security Logs:
+
+```powershell
+Get-WinEvent -LogName Security -MaxEvents 50
+```
+
+System Logs:
+
+```powershell
+Get-WinEvent -LogName System -MaxEvents 50
+```
+
+Application Logs:
+
+```powershell
+Get-WinEvent -LogName Application -MaxEvents 50
+```
+
+---
+
+## 8. Check Services
+
+### Linux
+
+List services:
+
+```bash
+systemctl list-units --type=service
+```
+
+Check a specific service:
+
+```bash
+systemctl status <service>
+```
+
+Examples:
+
+```bash
+systemctl status nginx
+systemctl status apache2
+systemctl status sshd
+```
+
+## Windows
+
+List services:
+
+```powershell
+Get-Service
+```
+
+Running services only:
+
+```powershell
+Get-Service | Where-Object {$_.Status -eq "Running"}
+```
+
+---
+
+## 9. Determine Scope
+
+```text
+What IP connected?
+What port was used?
+What process owns the port?
+What user executed the process?
+What logs show activity?
+Is the activity expected?
+```
+
+---
+
+## 10. Contain If Malicious
+
+### Linux
+
+Kill process:
+
+```bash
+kill <PID>
+```
+
+Stop service:
+
+```bash
+systemctl stop <service>
+```
+
+Block IP:
+
+```bash
+iptables -A INPUT -s <IP> -j DROP
+```
+
+### Windows
+
+Kill process:
+
+```powershell
+taskkill /PID <PID> /F
+```
+
+Block IP:
+
+```powershell
+New-NetFirewallRule `
+-DisplayName "Block Bad IP" `
+-Direction Inbound `
+-RemoteAddress <IP> `
+-Action Block
+```
+
+---
+
+### Common Windows Security Event IDs
+
+| Event ID | Description |
+|-----------|------------|
+| 4624 | Successful logon |
+| 4625 | Failed logon |
+| 4648 | Logon using explicit credentials |
+| 4672 | Privileged logon |
+| 4688 | Process creation |
+| 4697 | Service installed |
+| 4720 | User account created |
+| 4728 | Added to privileged group |
+| 4732 | Added to local Administrators |
+| 4740 | Account locked out |
+| 7045 | Service created |
+
+---
+
+## Quick Triage Checklist
+
+### Linux
+
+```bash
+hostname
+ip a
+who
+ss -tunap
+ss -tulpn
+ps aux --sort=-%cpu | head
+last
+tail -50 /var/log/auth.log
+systemctl list-units --type=service
+```
+
+### Windows
+
+```powershell
+hostname
+ipconfig
+whoami
+netstat -ano
+tasklist
+Get-Service
+Get-WinEvent -LogName Security -MaxEvents 50
+Get-WinEvent -LogName System -MaxEvents 50
+```
+
+---
+
+### Quick Triage Flow
+
+```text
+1. Identify the affected host.
+2. Determine the affected service.
+3. Find active connections and remote IPs.
+4. Identify listening ports.
+5. Map ports to processes.
+6. Review user activity.
+7. Review authentication and system logs.
+8. Determine whether activity is expected.
+9. Contain malicious activity.
+10. Document findings and actions taken.
+```
  
 # Common Ports
 
 - SSH: 22 TCP
 - Telnet: 23 TCP
-- SMB: 445 TCP
 - DNS: 53 UDP
-- SNMP traps: 162 UDP
-- SNMP manager: 161 UDP
 - DHCP server listen: 67 UDP
 - DHCP client receive: 68 UDP
 - TFTP: 69 UDP
 - HTTP: 80 TCP
+- SNMP manager: 161 UDP
+- SNMP traps: 162 UDP
 - HTTPS: 443 TCP
+- SMB: 445 TCP
 - PostgreSQL: 5432
 - HTTP Proxy: 8080
 - MongoDB: 27017
@@ -64,20 +485,33 @@ grep -c "failed" /var/log/auth.log
 
 ### ps aux
 
+- Displays all running processes on the system
+
+| USER | PID | CPU | MEM | VSZ | RSS | TTY | STAT | START | TIME | COMMAND
+|------|-----|-----|-----|-----|-----|-----|------|-------|------|------|
+| root | 1 | 0.0 | 0.1 | 168000 | 12000 | ? | Ss | 08:00 | 0:01 |sbin/init |
+|www-data | 522 | 0.2 | 0.5 | 250000 | 50000 | ? | S | 08:01 | 0:05 | apache2 |
+|ethan | 1254 | 5.1 | 1.2 | 800000 | 95000 | pts/0 | Sl | 09:15 | 1:32 python3 | app.py |
+
+
+
 ### Permissions
 
 ```bash
 chmod 777 file.txt 
 ```
+|Number| Description|
+|------|------------|
+|4| gives Write privileges to a file|
+|2| gives Read privileges to a file|
+|1| gives execute privileges to a file|
 
-4 gives Write privileges to a file
-2 gives Read privileges to a file
-1 gives execute privileges to a file
-
-7 - all permissions
-6 - Read/Write
-5 - write/execute
-3 - read/execute
+|Combination Number| Description|
+|------|------------|
+| 7 | all permissions|
+| 6 | Read/Write|
+| 5 | write/execute|
+| 3 | read/execute|
 
 |Owner | Group | Others (Standard Users)| Permission Type |
 |------|-------|------------------------|     ------      |
