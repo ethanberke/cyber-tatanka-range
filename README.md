@@ -137,16 +137,16 @@ chmod 777 file.txt
 ```
 |Number| Description|
 |------|------------|
-|4| gives Write (w) privileges to a file|
-|2| gives Read (r) privileges to a file|
+|4| gives Read (r) privileges to a file|
+|2| gives Write (w) privileges to a file|
 |1| gives execute (x) privileges to a file|
 
 |Combination Number| Description|
 |------|------------|
 | 7 | all permissions|
 | 6 | Read/Write|
-| 5 | write/execute|
-| 3 | read/execute|
+| 5 | read/execute|
+| 3 | write/execute|
 
 |Owner | Group | Others (Standard Users)| Permission Type |
 |------|-------|------------------------|     ------      |
