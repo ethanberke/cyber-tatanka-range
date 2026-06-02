@@ -404,8 +404,10 @@ index=app sourcetype=application_logs "User login failed"
 
 # Palo Alto
 
-https://www.paloguard.com/documentation.asp
+https://www.paloguard.com/documentation.asp <br/><br/>
+https://docs.paloaltonetworks.com/advanced-threat-prevention/administration/monitor-threat-prevention/view-threat-prevention-logs <br/>
 
+https://kb.wisc.edu/security/90826
 - Monitor
 - Policies
 - Objects
