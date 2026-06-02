@@ -102,6 +102,31 @@ grep -c "failed" /var/log/auth.log
 | l | Multi-threaded process |
 | + | Running in foreground process group |
 
+## Daemons
+
+A **daemon** is a background process that runs continuously and provides a service to the operating system or users.
+
+Unlike normal programs, daemons typically:
+
+- Start automatically at boot
+- Run without user interaction
+- Listen for requests or perform scheduled tasks
+- Often have names ending in `d` (daemon)
+
+### Common Linux Daemons
+
+| Daemon | Purpose |
+|----------|----------|
+| `sshd` | SSH remote access |
+| `httpd` / `apache2` | Apache web server |
+| `nginx` | Nginx web server |
+| `named` | DNS server |
+| `crond` / `cron` | Scheduled tasks |
+| `rsyslogd` | System logging |
+| `systemd` | Service manager |
+| `mysqld` | MySQL database |
+| `postgres` | PostgreSQL database |
+| `dockerd` | Docker service |
 
 ### Permissions
 
