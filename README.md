@@ -4,10 +4,12 @@
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
 - [Powershell Commands](#powershell-commands)
+- [Sysinternals](#sysinternals)
 - [Security Onion](#security-onion)
 - [Splunk](#splunk)
 - [Palo Alto](#palo-alto)
 - [PfSense](#pfsense)
+- [QRadar](#qradar)
 - [Triage Steps](#triage-steps)
 - [Quick Triage Checklist](#quick-triage-checklist)
  
@@ -93,13 +95,13 @@ grep -c "failed" /var/log/auth.log
 
 | Value | Meaning |
 |---------|---------|
-| R | Running |
-| S | Sleeping (waiting for an event) |
 | D | Uninterruptible sleep (usually disk I/O) |
+| l | Multi-threaded process |
+| R | Running |
+| s | Session leader |
+| S | Sleeping (waiting for an event) |
 | T | Stopped |
 | Z | Zombie (terminated but not cleaned up) |
-| s | Session leader |
-| l | Multi-threaded process |
 | + | Running in foreground process group |
 
 ## Daemons
@@ -118,7 +120,7 @@ Unlike normal programs, daemons typically:
 | Daemon | Purpose |
 |----------|----------|
 | `sshd` | SSH remote access |
-| `httpd` / `apache2` | Apache web server |
+| `httpd` / `apache2` | Apafche web server |
 | `nginx` | Nginx web server |
 | `named` | DNS server |
 | `crond` / `cron` | Scheduled tasks |
@@ -170,6 +172,26 @@ tail -n 50 #Returns the last specified lines in a log, in this case 50
 wc # counts how many words are returned
 wc - l #counts how many lines are returned
 ```
+# Sysinternals
+
+https://live.sysinternals.com/
+
+
+Sysinternals is a suite of advanced Windows system utilities developed by Microsoft. These tools provide deep visibility into operating system processes, services, drivers, network connections, registry activity, and other low-level system components that are not easily accessible through standard Windows administration tools.
+
+## Common Sysinternals Tools
+
+| Tool | Purpose |
+|--------|---------|
+| Process Explorer | Advanced process monitoring and analysis |
+| Process Monitor (Procmon) | Real-time monitoring of file, registry, process, and network activity |
+| Autoruns | Identifies programs configured to run automatically at startup |
+| TCPView | Displays active network connections and listening ports |
+| PsExec | Executes commands remotely on Windows systems |
+| Handle | Identifies which processes have files or resources open |
+| Sigcheck | Verifies digital signatures and analyzes files |
+| RAMMap | Examines memory usage and allocation |
+
 
 # Powershell Commands
 
@@ -497,6 +519,13 @@ ET MALWARE Emotet C2
 Action:
 reset-both
 ```
+
+# QRadar
+
+https://www.ibm.com/docs/en/qsip/7.4.0?topic=SS42VS_7.4/com.ibm.qradar.doc/c_qradar_pdfs.htm
+
+
+https://www.ibm.com/docs/en/SS42VS_7.4/pdf/b_qradar_gs_guide.pdf
 
 
 # Triage Steps
