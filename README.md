@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
+- [Powershell Commands](#powershell-commands)
 - [Security Onion](#security-onion)
 - [Splunk](#splunk)
 - [Palo Alto](#palo-alto)
@@ -143,6 +144,194 @@ tail -n 50 #Returns the last specified lines in a log, in this case 50
 ```bash
 wc # counts how many words are returned
 wc - l #counts how many lines are returned
+```
+
+# Powershell Commands
+
+### Creating/Reading/Deleting Files
+
+```powershell
+Get-Content file.txt                    # Print an entire file
+Get-Content file.txt | more             # View a file page by page
+Get-Content file.txt -Head 10           # Show the first lines
+Get-Content file.txt -Tail 10           # Show the last lines
+Get-Content app.log -Wait               # Follow new log output live
+Get-Volume                              # Shows available drives and mount points
+Get-Content file.txt | Select-String "Hello World"  # Search based on keywords
+```
+
+### Select-String (PowerShell Equivalent of grep)
+
+Search logs for matching keywords.
+
+```powershell
+# Case-insensitive search for 'error' in a file
+Select-String -Path C:\Logs\app.log -Pattern "error"
+
+# Recursive search for 'main' in current directory
+Get-ChildItem -Recurse | Select-String "main"
+
+# Show matching lines with context
+Select-String -Path application.log -Pattern "error" -Context 3
+
+# Search for multiple patterns
+Select-String -Path application.log -Pattern "error","warning"
+
+# Count occurrences
+(Select-String -Path security.log -Pattern "failed").Count
+```
+
+### Get-Process (PowerShell Equivalent of ps aux)
+
+Displays all running processes on the system.
+
+```powershell
+Get-Process
+```
+
+Detailed view:
+
+```powershell
+Get-Process | Select-Object `
+Name,
+Id,
+CPU,
+WorkingSet,
+StartTime
+```
+
+Sort by CPU:
+
+```powershell
+Get-Process | Sort-Object CPU -Descending
+```
+
+Sort by Memory:
+
+```powershell
+Get-Process | Sort-Object WorkingSet -Descending
+```
+
+### Common Get-Process Properties
+
+| Property | Description |
+|-----------|-------------|
+| Name | Process name |
+| Id | Process ID (PID) |
+| CPU | Total CPU time consumed |
+| WorkingSet | Physical memory (RAM) in use |
+| VirtualMemorySize | Virtual memory allocated |
+| StartTime | Time process started |
+| Path | Executable location |
+| Company | Software vendor |
+| Description | Process description |
+
+### Example
+
+```powershell
+Get-Process | Select Name,Id,CPU,WorkingSet
+```
+
+| Name | Id | CPU | WorkingSet |
+|------|----|-----|------------|
+| svchost | 1024 | 15.3 | 55000000 |
+| chrome | 2345 | 42.7 | 325000000 |
+| powershell | 5678 | 1.1 | 85000000 |
+
+---
+
+### Permissions
+
+View ACL permissions:
+
+```powershell
+Get-Acl file.txt
+```
+
+Grant Full Control:
+
+```powershell
+icacls file.txt /grant User:F
+```
+
+| Permission | Description |
+|------------|-------------|
+| F | Full Control |
+| M | Modify |
+| RX | Read and Execute |
+| R | Read |
+| W | Write |
+
+View permissions recursively:
+
+```powershell
+Get-ChildItem . -Recurse | Get-Acl
+```
+
+---
+
+### Pipes
+
+A pipe sends the output of one command into another command.
+
+```powershell
+Get-ChildItem | Out-Host -Paging
+```
+
+Example:
+
+```powershell
+Get-Process | Sort-Object CPU -Descending
+```
+
+---
+
+### Tail
+
+Show the last 50 lines of a log file.
+
+```powershell
+Get-Content application.log -Tail 50
+```
+
+Follow log updates live.
+
+```powershell
+Get-Content application.log -Wait
+```
+
+Show last 50 lines and continue watching.
+
+```powershell
+Get-Content application.log -Tail 50 -Wait
+```
+
+---
+
+### Measure-Object (PowerShell Equivalent of wc)
+
+Count lines:
+
+```powershell
+(Get-Content file.txt | Measure-Object -Line).Lines
+```
+
+Count words:
+
+```powershell
+(Get-Content file.txt | Measure-Object -Word).Words
+```
+
+Count characters:
+
+```powershell
+(Get-Content file.txt | Measure-Object -Character).Characters
+```
+
+Count files in a directory:
+
+```powershell
+(Get-ChildItem).Count
 ```
 
 # Security Onion
