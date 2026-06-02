@@ -72,7 +72,7 @@ grep -c "failed" /var/log/auth.log
 |www-data | 522 | 0.2 | 0.5 | 250000 | 50000 | ? | S | 08:01 | 0:05 | apache2 |
 |ethan | 1254 | 5.1 | 1.2 | 800000 | 95000 | pts/0 | Sl | 09:15 | 1:32 python3 | app.py |
 
-## ps aux Columns
+## ps aux definitions
 
 | Column | Description |
 |----------|-------------|
@@ -101,20 +101,6 @@ grep -c "failed" /var/log/auth.log
 | l | Multi-threaded process |
 | + | Running in foreground process group |
 
-### Example
-
-```text
-USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-root      1024  0.1  0.3 168000 12000 ?        Ss   08:00   0:01 sshd
-apache    2048  1.2  1.5 450000 60000 ?        Sl   08:05   0:10 httpd
-```
-
-- `sshd` is owned by `root`
-- PID is `1024`
-- State `Ss` = Sleeping + Session Leader
-- Started at `08:00`
-- Has consumed `0:01` of CPU time
-
 
 ### Permissions
 
@@ -123,9 +109,9 @@ chmod 777 file.txt
 ```
 |Number| Description|
 |------|------------|
-|4| gives Write privileges to a file|
-|2| gives Read privileges to a file|
-|1| gives execute privileges to a file|
+|4| gives Write (w) privileges to a file|
+|2| gives Read (r) privileges to a file|
+|1| gives execute (x) privileges to a file|
 
 |Combination Number| Description|
 |------|------------|
@@ -137,7 +123,7 @@ chmod 777 file.txt
 |Owner | Group | Others (Standard Users)| Permission Type |
 |------|-------|------------------------|     ------      |
 | 7    | 7     | 7                      | Everyone has permission to Read/Write/Execute |
-| 7    | 1     | 1                      | Only file only can read/write/execute, everyone else can only execute |
+| 7    | 1     | 1                      | Only owner can read/write/execute, everyone else can only execute |
 | 7    | 6    | 1                      | Owner has rwx, group has rw, other has execute
 
 ### Pipes
