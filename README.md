@@ -487,12 +487,54 @@ grep -c "failed" /var/log/auth.log
 
 - Displays all running processes on the system
 
-| USER | PID | CPU | MEM | VSZ | RSS | TTY | STAT | START | TIME | COMMAND
+| USER | PID | %CPU | %MEM | VSZ | RSS | TTY | STAT | START | TIME | COMMAND
 |------|-----|-----|-----|-----|-----|-----|------|-------|------|------|
 | root | 1 | 0.0 | 0.1 | 168000 | 12000 | ? | Ss | 08:00 | 0:01 |sbin/init |
 |www-data | 522 | 0.2 | 0.5 | 250000 | 50000 | ? | S | 08:01 | 0:05 | apache2 |
 |ethan | 1254 | 5.1 | 1.2 | 800000 | 95000 | pts/0 | Sl | 09:15 | 1:32 python3 | app.py |
 
+## ps aux Columns
+
+| Column | Description |
+|----------|-------------|
+| USER | User that owns the process |
+| PID | Unique Process ID |
+| %CPU | Percentage of CPU currently being used |
+| %MEM | Percentage of system memory (RAM) being used |
+| VSZ | Virtual memory size allocated to the process (KB) |
+| RSS | Physical memory currently used by the process (KB) |
+| TTY | Terminal associated with the process (`?` = no terminal) |
+| STAT | Current process state (Running, Sleeping, Zombie, etc.) |
+| START | Time or date the process started |
+| TIME | Total CPU time consumed since process start |
+| COMMAND | Command and arguments used to launch the process |
+
+### Common STAT Values
+
+| Value | Meaning |
+|---------|---------|
+| R | Running |
+| S | Sleeping (waiting for an event) |
+| D | Uninterruptible sleep (usually disk I/O) |
+| T | Stopped |
+| Z | Zombie (terminated but not cleaned up) |
+| s | Session leader |
+| l | Multi-threaded process |
+| + | Running in foreground process group |
+
+### Example
+
+```text
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root      1024  0.1  0.3 168000 12000 ?        Ss   08:00   0:01 sshd
+apache    2048  1.2  1.5 450000 60000 ?        Sl   08:05   0:10 httpd
+```
+
+- `sshd` is owned by `root`
+- PID is `1024`
+- State `Ss` = Sleeping + Session Leader
+- Started at `08:00`
+- Has consumed `0:01` of CPU time
 
 
 ### Permissions
