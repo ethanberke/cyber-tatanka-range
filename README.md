@@ -4,33 +4,34 @@
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
 - [Nmap](#nmap)
-- [Powershell Commands](#powershell-commands)
+- [PowerShell Commands](#powershell-commands)
 - [Sysinternals](#sysinternals)
 - [Security Onion](#security-onion)
 - [Splunk](#splunk)
-- [Palo Alto](#palo-alto)
-- [PfSense](#pfsense)
+- [pfSense](#pfsense)
 - [QRadar](#qradar)
 - [Triage Steps](#triage-steps)
-- [Quick Triage Checklist](#quick-triage-checklist)
+  - [Quick Triage Checklist](#quick-triage-checklist)
  
 # Common Ports
 
-- SSH: 22 TCP
-- Telnet: 23 TCP
-- DNS: 53 UDP
-- DHCP server listen: 67 UDP
-- DHCP client receive: 68 UDP
-- TFTP: 69 UDP
-- HTTP: 80 TCP
-- SNMP manager: 161 UDP
-- SNMP traps: 162 UDP
-- HTTPS: 443 TCP
-- SMB: 445 TCP
-- Syslog: 514 TCP
-- PostgreSQL: 5432
-- HTTP Proxy: 8080
-- MongoDB: 27017
+| Service | Port | Protocol | Notes |
+|---------|------|----------|-------|
+| SSH | 22 | TCP | Remote Linux/Unix administration |
+| Telnet | 23 | TCP | Legacy remote access, usually insecure |
+| DNS | 53 | UDP/TCP | Name resolution |
+| DHCP server | 67 | UDP | Server listens for client requests |
+| DHCP client | 68 | UDP | Client receives DHCP responses |
+| TFTP | 69 | UDP | Simple file transfer |
+| HTTP | 80 | TCP | Web traffic |
+| SNMP manager | 161 | UDP | Network monitoring queries |
+| SNMP traps | 162 | UDP | Network monitoring alerts |
+| HTTPS | 443 | TCP | Encrypted web traffic |
+| SMB | 445 | TCP | Windows file sharing |
+| Syslog | 514 | UDP/TCP | System and network logging |
+| PostgreSQL | 5432 | TCP | PostgreSQL database |
+| HTTP Proxy | 8080 | TCP | Common proxy or alternate web port |
+| MongoDB | 27017 | TCP | MongoDB database |
 
 
 # Linux Commands
@@ -71,13 +72,13 @@ grep -c "failed" /var/log/auth.log
 
 - Displays all running processes on the system
 
-| USER | PID | %CPU | %MEM | VSZ | RSS | TTY | STAT | START | TIME | COMMAND
+| USER | PID | %CPU | %MEM | VSZ | RSS | TTY | STAT | START | TIME | COMMAND |
 |------|-----|-----|-----|-----|-----|-----|------|-------|------|------|
-| root | 1 | 0.0 | 0.1 | 168000 | 12000 | ? | Ss | 08:00 | 0:01 |sbin/init |
-|www-data | 522 | 0.2 | 0.5 | 250000 | 50000 | ? | S | 08:01 | 0:05 | apache2 |
-|ethan | 1254 | 5.1 | 1.2 | 800000 | 95000 | pts/0 | Sl | 09:15 | 1:32 python3 | app.py |
+| root | 1 | 0.0 | 0.1 | 168000 | 12000 | ? | Ss | 08:00 | 0:01 | /sbin/init |
+| www-data | 522 | 0.2 | 0.5 | 250000 | 50000 | ? | S | 08:01 | 0:05 | apache2 |
+| ethan | 1254 | 5.1 | 1.2 | 800000 | 95000 | pts/0 | Sl | 09:15 | 1:32 | python3 app.py |
 
-## ps aux definitions
+### ps aux definitions
 
 | Column | Description |
 |----------|-------------|
@@ -122,7 +123,7 @@ Unlike normal programs, daemons typically:
 | Daemon | Purpose |
 |----------|----------|
 | `sshd` | SSH remote access |
-| `httpd` / `apache2` | Apafche web server |
+| `httpd` / `apache2` | Apache web server |
 | `nginx` | Nginx web server |
 | `named` | DNS server |
 | `crond` / `cron` | Scheduled tasks |
@@ -135,8 +136,11 @@ Unlike normal programs, daemons typically:
 ### Permissions
 
 ```bash
-chmod 777 file.txt 
+chmod 755 script.sh
 ```
+
+Avoid using `chmod 777` unless you specifically need everyone to read, write, and execute the file.
+
 |Number| Description|
 |------|------------|
 |4| gives Read (r) privileges to a file|
@@ -166,14 +170,15 @@ ls -la | less
 
 ### tail
 ```bash
-tail -n 50 #Returns the last specified lines in a log, in this case 50
+tail -n 50 /var/log/syslog # Returns the last 50 lines from a log
 ```
 
 ### wc - (word count)
 ```bash
-wc # counts how many words are returned
-wc - l #counts how many lines are returned
+wc file.txt # Counts lines, words, and characters
+wc -l file.txt # Counts how many lines are in a file
 ```
+
 # Nmap
 
 Nmap is a network scanning tool used to discover hosts, identify open ports, detect services, and gather basic operating system information.
@@ -396,7 +401,7 @@ Use this workflow to:
 - Save results for documentation or troubleshooting
 
 
-# Powershell Commands
+# PowerShell Commands
 
 ### Creating/Reading/Deleting Files
 
@@ -601,7 +606,7 @@ Sysinternals is a suite of advanced Windows system utilities developed by Micros
 | Process Monitor (Procmon) | Real-time monitoring of file, registry, process, and network activity |
 | PsExec | Executes commands remotely on Windows systems |
 | RAMMap | Examines memory usage and allocation |
-|Root Kit Revealer | |
+| RootkitRevealer | Detects signs of user-mode or kernel-mode rootkits |
 | Sigcheck | Verifies digital signatures and analyzes files |
 | TCPView | Displays active network connections and listening ports |
 
@@ -609,6 +614,18 @@ Sysinternals is a suite of advanced Windows system utilities developed by Micros
 # Security Onion
 
 https://docs.securityonion.net/en/3/main/getting-started/
+
+Security Onion is a defensive monitoring platform used for network security monitoring, log collection, alerting, and investigation.
+
+Common places to look:
+
+- Alerts
+- Hunt
+- Dashboards
+- PCAP
+- Cases
+
+Example detection logic:
 
 ```txt
 title: External Host Connection To Internal Server
@@ -647,6 +664,16 @@ level: medium
 
 https://www.splunk.com/en_us/blog/learn/splunk-cheat-sheet-query-spl-regex-commands.html
 
+Splunk is used to search, analyze, alert on, and visualize machine data such as logs, firewall events, authentication events, and application activity.
+
+Common actions:
+
+- Search logs with SPL
+- Build alerts
+- Create dashboards
+- Extract fields
+- Investigate events by host, user, IP address, or time range
+
 ### Alert - Determine how often to check and how to alert
 
 ```spl
@@ -674,31 +701,14 @@ index=app sourcetype=application_logs "User login failed"
 | sort - failures
 ```
 
-# Palo Alto
 
-https://www.paloguard.com/documentation.asp <br/><br/>
-https://docs.paloaltonetworks.com/advanced-threat-prevention/administration/monitor-threat-prevention/view-threat-prevention-logs <br/>
-
-https://kb.wisc.edu/security/90826
-- Monitor
-- Policies
-- Objects
-- Network
-
-### View Traffic
-
-```txt
-Monitor → Logs → Traffic
-
-Source: 10.1.1.100
-Destination: 8.8.8.8
-Application: dns
-Action: allow
-Rule: Internal-DNS
-```
-# PfSense
+# pfSense
 
 https://docs.netgate.com/pfsense/en/latest/index.html
+
+pfSense is a firewall and router platform used for traffic filtering, NAT, VPNs, DHCP, DNS, and basic network services.
+
+Common places to look:
 
 - Dashboard
 - Interfaces
@@ -733,18 +743,6 @@ Source: 203.0.113.25
 Destination: Any
 ```
 
-### Threat Logs
-
-```txt
-Monitor → Logs → Threat
-
-Threat Name:
-ET MALWARE Emotet C2
-
-Action:
-reset-both
-```
-
 # QRadar
 
 https://www.ibm.com/docs/en/qsip/7.4.0?topic=SS42VS_7.4/com.ibm.qradar.doc/c_qradar_pdfs.htm
@@ -752,8 +750,78 @@ https://www.ibm.com/docs/en/qsip/7.4.0?topic=SS42VS_7.4/com.ibm.qradar.doc/c_qra
 
 https://www.ibm.com/docs/en/SS42VS_7.4/pdf/b_qradar_gs_guide.pdf
 
+QRadar is a SIEM used to collect events and flows, correlate activity, generate offenses, and support investigations.
+
+Common places to look:
+
+- Offenses
+- Log Activity
+- Network Activity
+- Assets
+- Rules
+- Reports
+
+Basic investigation flow:
+
+```text
+1. Open the offense.
+2. Review source IPs, destination IPs, users, and event names.
+3. Pivot into Log Activity or Network Activity.
+4. Check the timeline and magnitude.
+5. Determine whether the activity is expected or suspicious.
+6. Document findings and escalate or contain if needed.
+```
+
 
 # Triage Steps
+
+## Quick Triage Checklist
+
+### Linux
+
+```bash
+hostname
+ip a
+who
+ss -tunap
+ss -tulpn
+ps aux --sort=-%cpu | head
+last
+tail -50 /var/log/auth.log
+systemctl list-units --type=service
+```
+
+### Windows
+
+```powershell
+hostname
+ipconfig
+whoami
+netstat -ano
+tasklist
+Get-Service
+Get-WinEvent -LogName Security -MaxEvents 50
+Get-WinEvent -LogName System -MaxEvents 50
+```
+
+---
+
+### Quick Triage Flow
+
+```text
+1. Identify the affected host.
+2. Determine the affected service.
+3. Find active connections and remote IPs.
+4. Identify listening ports.
+5. Map ports to processes.
+6. Review user activity.
+7. Review authentication and system logs.
+8. Determine whether activity is expected.
+9. Contain malicious activity.
+10. Document findings and actions taken.
+```
+
+---
 
 ## 1. Identify the Problem
 
@@ -1039,7 +1107,7 @@ systemctl status apache2
 systemctl status sshd
 ```
 
-## Windows
+### Windows
 
 List services:
 
@@ -1125,51 +1193,3 @@ New-NetFirewallRule `
 | 4732 | Added to local Administrators |
 | 4740 | Account locked out |
 | 7045 | Service created |
-
----
-
-## Quick Triage Checklist
-
-### Linux
-
-```bash
-hostname
-ip a
-who
-ss -tunap
-ss -tulpn
-ps aux --sort=-%cpu | head
-last
-tail -50 /var/log/auth.log
-systemctl list-units --type=service
-```
-
-### Windows
-
-```powershell
-hostname
-ipconfig
-whoami
-netstat -ano
-tasklist
-Get-Service
-Get-WinEvent -LogName Security -MaxEvents 50
-Get-WinEvent -LogName System -MaxEvents 50
-```
-
----
-
-### Quick Triage Flow
-
-```text
-1. Identify the affected host.
-2. Determine the affected service.
-3. Find active connections and remote IPs.
-4. Identify listening ports.
-5. Map ports to processes.
-6. Review user activity.
-7. Review authentication and system logs.
-8. Determine whether activity is expected.
-9. Contain malicious activity.
-10. Document findings and actions taken.
-```
