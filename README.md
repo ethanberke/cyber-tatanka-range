@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
+- [Nmap](#nmap)
 - [Powershell Commands](#powershell-commands)
 - [Sysinternals](#sysinternals)
 - [Security Onion](#security-onion)
@@ -26,6 +27,7 @@
 - SNMP traps: 162 UDP
 - HTTPS: 443 TCP
 - SMB: 445 TCP
+- Syslog: 514 TCP
 - PostgreSQL: 5432
 - HTTP Proxy: 8080
 - MongoDB: 27017
@@ -172,26 +174,226 @@ tail -n 50 #Returns the last specified lines in a log, in this case 50
 wc # counts how many words are returned
 wc - l #counts how many lines are returned
 ```
-# Sysinternals
+# Nmap
 
-https://live.sysinternals.com/
+Nmap is a network scanning tool used to discover hosts, identify open ports, detect services, and gather basic operating system information.
 
+Use Nmap only on systems you own, manage, or have permission to test.
 
-Sysinternals is a suite of advanced Windows system utilities developed by Microsoft. These tools provide deep visibility into operating system processes, services, drivers, network connections, registry activity, and other low-level system components that are not easily accessible through standard Windows administration tools.
+## Installing Nmap
 
-## Common Sysinternals Tools
+### Ubuntu/Debian
+```bash
+sudo apt update
+sudo apt install nmap -y
+```
 
-| Tool | Purpose |
+### macOS
+```bash
+brew install nmap
+```
+
+### Windows
+
+Download the Windows installer from the official Nmap site:
+
+```text
+https://nmap.org/download.html
+```
+
+After installing, open PowerShell or Command Prompt and verify it works:
+
+```powershell
+nmap --version
+```
+
+## Basic Nmap Syntax
+
+```bash
+nmap [scan options] [target]
+```
+
+Targets can be:
+
+```bash
+nmap 192.168.1.10          # Scan one host
+nmap 192.168.1.0/24        # Scan a subnet
+nmap 192.168.1.10-50       # Scan a range of IP addresses
+nmap example.com           # Scan a hostname
+```
+
+## Finding Live Hosts
+
+Use a ping sweep to find hosts that are online without doing a full port scan.
+
+```bash
+nmap -sn 192.168.1.0/24
+```
+
+Useful when you first enter a network and need to identify active systems.
+
+## Basic Port Scan
+
+Scan the most common 1,000 TCP ports on a host:
+
+```bash
+nmap 192.168.1.10
+```
+
+Example output:
+
+```text
+PORT    STATE SERVICE
+22/tcp  open  ssh
+80/tcp  open  http
+443/tcp open  https
+```
+
+### Reading Port States
+
+| State | Meaning |
+|-------|---------|
+| open | A service is listening on the port |
+| closed | The host responded, but nothing is listening on the port |
+| filtered | Nmap cannot tell because a firewall or filter may be blocking traffic |
+
+## Scan Specific Ports
+
+```bash
+nmap -p <port number> <ip address>
+nmap -p 22,80,443 192.168.1.10
+```
+
+Scan a port range:
+
+```bash
+nmap -p 1-1000 192.168.1.10
+```
+
+## Common Nmap Options
+
+| Option | Purpose |
 |--------|---------|
-| Autoruns | Identifies programs configured to run automatically at startup |
-| Handle | Identifies which processes have files or resources open |
-| Process Explorer | Advanced process monitoring and analysis |
-| Process Monitor (Procmon) | Real-time monitoring of file, registry, process, and network activity |
-| PsExec | Executes commands remotely on Windows systems |
-| RAMMap | Examines memory usage and allocation |
-|Root Kit Revealer | |
-| Sigcheck | Verifies digital signatures and analyzes files |
-| TCPView | Displays active network connections and listening ports |
+| `-sn` | Host discovery only, no port scan |
+| `-p` | Choose specific ports |
+| `-p-` | Scan all TCP ports |
+| `-sV` | Detect service versions |
+| `-O` | Attempt operating system detection |
+| `-A` | Aggressive scan with extra detection |
+| `-sU` | UDP scan |
+| `-T4` | Faster timing, commonly used on stable networks |
+| `-oN` | Save normal output to a file |
+| `-oX` | Save XML output to a file |
+| `-iL` | Read targets from a file |
+
+## Save Scan Results
+
+Save normal output:
+
+```bash
+nmap -sV 192.168.1.10 -oN scan-results.txt
+```
+
+Save XML output for importing into other tools:
+
+```bash
+nmap -sV 192.168.1.10 -oX scan-results.xml
+```
+
+## Scan Multiple Targets from a File
+
+Create a file named `targets.txt`:
+
+```text
+192.168.1.10
+192.168.1.11
+192.168.1.12
+```
+
+Run:
+
+```bash
+nmap -sV -iL targets.txt -oN subnet-scan.txt
+```
+
+## Practical Walkthrough
+
+### 1. Identify Your Network
+
+On Linux:
+
+```bash
+ip addr
+```
+
+On Windows:
+
+```powershell
+ipconfig
+```
+
+Look for your local IP address and subnet. For example, if your IP is `192.168.1.25`, your local network is commonly `192.168.1.0/24`.
+
+### 2. Find Live Hosts
+
+```bash
+nmap -sn 192.168.1.0/24
+```
+
+Write down the hosts that respond.
+
+### 3. Scan One Host for Common Ports
+
+```bash
+nmap 192.168.1.10
+```
+
+Look for open ports and compare them against what you expect the system to run.
+
+### 4. Identify Services
+
+```bash
+nmap -sV 192.168.1.10
+```
+
+Check whether service names and versions make sense for that host.
+
+### 5. Scan All TCP Ports if Needed
+
+```bash
+nmap -p- 192.168.1.10
+```
+
+If you find unusual ports, scan them with version detection:
+
+```bash
+nmap -sV -p 8080,8443,3389 192.168.1.10
+```
+
+### 6. Save Evidence
+
+```bash
+nmap -sV 192.168.1.10 -oN 192.168.1.10-nmap.txt
+```
+
+Keep scan results with your notes so you can compare changes over time.
+
+## Example Network Engineer Workflow
+
+```bash
+nmap -sn 10.10.10.0/24
+nmap -sV -p 22,53,80,443,445,3389 10.10.10.25 -oN host-scan.txt
+nmap -p- 10.10.10.25 -oN host-all-tcp-ports.txt
+sudo nmap -sU --top-ports 20 10.10.10.25 -oN host-common-udp.txt
+```
+
+Use this workflow to:
+
+- Confirm a host is online
+- Check expected management ports
+- Find unexpected TCP services
+- Check common UDP services
+- Save results for documentation or troubleshooting
 
 
 # Powershell Commands
@@ -381,6 +583,28 @@ Count files in a directory:
 ```powershell
 (Get-ChildItem).Count
 ```
+
+# Sysinternals
+
+https://live.sysinternals.com/
+
+
+Sysinternals is a suite of advanced Windows system utilities developed by Microsoft. These tools provide deep visibility into operating system processes, services, drivers, network connections, registry activity, and other low-level system components that are not easily accessible through standard Windows administration tools.
+
+## Common Sysinternals Tools
+
+| Tool | Purpose |
+|--------|---------|
+| Autoruns | Identifies programs configured to run automatically at startup |
+| Handle | Identifies which processes have files or resources open |
+| Process Explorer | Advanced process monitoring and analysis |
+| Process Monitor (Procmon) | Real-time monitoring of file, registry, process, and network activity |
+| PsExec | Executes commands remotely on Windows systems |
+| RAMMap | Examines memory usage and allocation |
+|Root Kit Revealer | |
+| Sigcheck | Verifies digital signatures and analyzes files |
+| TCPView | Displays active network connections and listening ports |
+
 
 # Security Onion
 
