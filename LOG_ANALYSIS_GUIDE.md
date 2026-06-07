@@ -33,37 +33,57 @@
 
 ## Authentication & logins
 
-- **Linux** — Quick searches (simple, easy-to-read)
+**Linux** — Quick searches (simple, easy-to-read)
+
+Show the most recent failed SSH password attempts (raw lines):
 ```bash
-# Show the most recent failed SSH password attempts (raw lines)
 grep "Failed password" /var/log/auth.log | tail -n 50
+```
 
-# Count failed attempts by source IP (extract IPv4 addresses)
+Count failed attempts by source IP (extract IPv4 addresses) and show top sources:
+```bash
 grep "Failed password" /var/log/auth.log | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort | uniq -c | sort -nr | head
+```
 
-# Show recent successful logins (raw lines)
+Show recent successful logins (raw lines):
+```bash
 grep "Accepted" /var/log/auth.log | tail -n 50
+```
 
-# Session open/close entries for a user
+Show session open entries for users:
+```bash
 grep "session opened for user" /var/log/auth.log | tail -n 50
+```
+
+Show session close entries for users:
+```bash
 grep "session closed for user" /var/log/auth.log | tail -n 50
+```
 
-# Recent interactive logins summary
+Show recent interactive logins summary:
+```bash
 last -a | head -n 30
+```
 
-# If auditd is enabled, use it for structured login events
+If `auditd` is enabled, use it for structured login events:
+```bash
 ausearch -m USER_LOGIN --start recent
 ```
 
-- **Windows** — Event IDs and sample PowerShell
+**Windows** — Event IDs and sample PowerShell
+
+Show recent successful logons (Event ID 4624):
 ```powershell
-# Recent successful logons (Event ID 4624) - show time and raw message
 Get-EventLog -LogName Security -Newest 100 | Where-Object {$_.EventID -eq 4624} | Select TimeGenerated,Message
+```
 
-# Recent failed logons (Event ID 4625)
+Show recent failed logons (Event ID 4625):
+```powershell
 Get-EventLog -LogName Security -Newest 200 | Where-Object {$_.EventID -eq 4625} | Select TimeGenerated,Message
+```
 
-# New user creation or privilege events (common IDs)
+Show recent new user creation or privilege events (common IDs):
+```powershell
 Get-EventLog -LogName Security -Newest 200 | Where-Object {$_.EventID -in 4720,4722,4672} | Select TimeGenerated,Message
 ```
 
@@ -83,23 +103,34 @@ Windows GUI checks (Authentication & logins):
 ## Ports, listening services, and connections
 
 - **Check current listeners and their binaries (important to tie ports to processes)**
+Show listening TCP/UDP ports and owning process:
 ```bash
-# Show listening TCP/UDP ports and owning process
-ss -tulpen | head -120
-# or
-netstat -tulnp
+ss -tulpen | head -n 120
+```
 
-# Map sockets to binaries
+Alternate view (netstat):
+```bash
+netstat -tulnp
+```
+
+Map sockets to binaries (lsof):
+```bash
 sudo lsof -i -P -n | grep LISTEN
 ```
 
 - **Find processes with network activity**
+Show established TCP connections with process info:
 ```bash
-# Show established TCP connections with process info (simple view)
 ss -tnp | head -n 40
-# Show listening ports and owning processes
+```
+
+Show listening ports and owning processes:
+```bash
 ss -tulpen | head -n 40
-# Or use lsof to map ports to binaries
+```
+
+Map established sockets to binaries with lsof:
+```bash
 sudo lsof -i -P -n | grep ESTABLISHED | head -n 40
 ```
 
@@ -126,65 +157,122 @@ GUI tools:
 ---
 
 - **Service-specific logs**
+Check a systemd service journal for errors and recent starts (sshd):
 ```bash
-# Check a systemd service journal for errors and recent starts
 journalctl -u sshd --since "2 hours ago"
-# Show recent nginx errors (simple)
-journalctl -u nginx --since "1 day ago" -p err | tail -n 100
+```
 
-# Web server: show top client IPs (recent)
+Show recent nginx errors:
+```bash
+journalctl -u nginx --since "1 day ago" -p err | tail -n 100
+```
+
+Show top client IPs from nginx access log (recent):
+```bash
 tail -n 200 /var/log/nginx/access.log | awk '{print $1}' | sort | uniq -c | sort -nr | head -n 20
 ```
 
+Windows equivalent (Service logs / Web server events):
+
+Open Event Viewer → Windows Logs → Application/System to view service and application errors. To list recent service-related events via PowerShell:
+```powershell
+Get-EventLog -LogName System -Newest 200 | Where-Object {$_.EventID -in 7036,7034,7040} | Select TimeGenerated,Message
+```
+
+To check a Windows service status (replace `<ServiceName>`):
+```powershell
+Get-Service -Name <ServiceName>
+```
+
 - **Firewall and connection logs**
+Show UFW log lines (recent):
 ```bash
-# UFW
 grep UFW /var/log/syslog | tail -n 200
+```
 
-# iptables log entries (if configured)
+Show iptables log entries (if configured):
+```bash
 grep "IN=" /var/log/messages | tail -n 200
+```
 
-# Short packet capture (15s) for a specific host/port
+Capture packets for 15 seconds for a specific host/port:
+```bash
 sudo timeout 15 tcpdump -n -i any host 192.0.2.5 and port 22 -w /tmp/suspect.pcap
 ```
+
+Windows equivalent (Firewall logs & packet capture):
+
+To view Windows Firewall events in the GUI: open `Windows Firewall with Advanced Security` → `Monitoring`. For detailed events, open Event Viewer and navigate to `Applications and Services Logs` → `Microsoft` → `Windows` → `Windows Firewall with Advanced Security` → `Firewall`.
+
+List basic firewall rules via PowerShell:
+```powershell
+Get-NetFirewallRule | Select-Object Name,DisplayName,Enabled
+```
+
+Start a network trace on Windows (admin) and stop after investigation:
+```powershell
+netsh trace start capture=yes tracefile=c:\temp\nettrace.etl
+```
+```powershell
+netsh trace stop
+```
+
+For GUI packet capture, use Wireshark; for connection listings use TCPView (Sysinternals).
 
 ---
 
 ## Processes, services, and persistence
 
 - **Identify recently started services and new unit files**
+Show recently started services (last 6 hours):
 ```bash
-# Recently started services
 journalctl --since "6 hours ago" | egrep "Starting|Started" | tail -n 50
+```
 
-# Unit files changed in the last 7 days
+List unit files changed in the last 7 days:
+```bash
 find /etc/systemd/system /lib/systemd/system -type f -mtime -7 -ls | head -n 50
+```
 
-# Recent package installs (apt example)
+Show recent package installs (apt/dpkg example):
+```bash
 grep "install " /var/log/dpkg.log | tail -n 50
+```
+
+Show recent apt history entries:
+```bash
 grep "Installed: " /var/log/apt/history.log | tail -n 50
 ```
 
 - **Processes spawning unusual children or commands**
+Show top CPU consumers:
 ```bash
-# Show top CPU/memory consumers
-ps aux --sort=-%cpu | head -n 15   # top CPU users
-ps aux --sort=-%mem | head -n 15   # top memory users
+ps aux --sort=-%cpu | head -n 15
+```
 
-# If you know a suspicious process name, get its PID and show parentage
-# 1) find PID
+Show top memory consumers:
+```bash
+ps aux --sort=-%mem | head -n 15
+```
+
+Find PIDs for a suspicious process name (replace `suspicious_binary`):
+```bash
 pgrep -fl suspicious_binary
-# 2) show process tree for that PID (replace <PID>)
+```
+
+Show the process tree for a PID (replace `<PID>`):
+```bash
 pstree -ps <PID>
 ```
 
 - **Windows** — service and process checks
+Show new service install events (Event ID 7045):
 ```powershell
-
-# New service installed (Event ID 7045)
 Get-EventLog -LogName System -Newest 200 | Where-Object {$_.EventID -eq 7045} | Select TimeGenerated,Message
+```
 
-# Recent process creation events (Event ID 4688) - raw messages
+Show recent process creation events (Event ID 4688):
+```powershell
 Get-EventLog -LogName Security -Newest 200 | Where-Object {$_.EventID -eq 4688} | Select TimeGenerated,Message
 ```
 
@@ -197,11 +285,14 @@ Windows GUI & tips (Processes & services):
 - Check Task Scheduler for suspicious scheduled tasks: `Task Scheduler` → `Task Scheduler Library` and sort by `Last Run Time`.
 
 PowerShell quick checks (simple):
-```powershell
-# List running services (short)
-Get-Service | Where-Object {$_.Status -eq 'Running'} | Select Name,DisplayName
 
-# List scheduled tasks (short)
+List running services (short):
+```powershell
+Get-Service | Where-Object {$_.Status -eq 'Running'} | Select Name,DisplayName
+```
+
+List scheduled tasks (short):
+```powershell
 Get-ScheduledTask | Select TaskName,State
 ```
 
@@ -212,16 +303,33 @@ Get-ScheduledTask | Select TaskName,State
 ## Resource spikes (CPU, memory, disk, I/O)
 
 - **Linux quick diagnostics**
+Instant snapshot (top):
 ```bash
-# Instant snapshot
 top -b -n1 | head -40
+```
+
+Short vmstat samples (5 iterations):
+```bash
 vmstat 1 5
+```
+
+Short iostat samples:
+```bash
 iostat -x 1 5
+```
 
-# Look for OOM events in kernel logs
-dmesg | egrep -i "oom|out of memory" -n || journalctl -k | egrep -i "oom|out of memory"
+Look for OOM events in kernel logs:
+```bash
+dmesg | egrep -i "oom|out of memory" -n
+```
 
-# Check for high disk write activity
+Or via the journal:
+```bash
+journalctl -k | egrep -i "oom|out of memory"
+```
+
+Check for high disk write activity (iotop must be installed):
+```bash
 iotop -b -o -n 5
 ```
 
@@ -231,11 +339,14 @@ iotop -b -o -n 5
 - Open Resource Monitor → `CPU` / `Memory` / `Disk` tabs for per-process details.
 
 PowerShell quick checks (easy):
-```powershell
-# Top 10 processes by CPU
-Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Id,ProcessName,CPU
 
-# Quick CPU/Memory snapshot
+Top 10 processes by CPU:
+```powershell
+Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Id,ProcessName,CPU
+```
+
+Quick CPU/Memory snapshot:
+```powershell
 Get-Counter '\Processor(_Total)\% Processor Time','\Memory\Available MBytes' -MaxSamples 3 -SampleInterval 1
 ```
 
