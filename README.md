@@ -4,7 +4,9 @@
 - [Common Ports](#common-ports)
 - [Linux Commands](#linux-commands)
 - [Nmap](#nmap)
+- [Packet Capture / Wireshark](#packet-capture--wireshark)
 - [PowerShell Commands](#powershell-commands)
+- [Prefetch Files](#prefetch-files)
 - [Sysinternals](#sysinternals)
 - [Security Onion](#security-onion)
 - [Splunk](#splunk)
@@ -610,6 +612,85 @@ Sysinternals is a suite of advanced Windows system utilities developed by Micros
 | Sigcheck | Verifies digital signatures and analyzes files |
 | TCPView | Displays active network connections and listening ports |
 
+
+# Prefetch Files
+
+Windows Prefetch files are artifacts created by the OS to speed up application startup. In a forensic or triage scenario, they can help confirm that a program was executed and show run count and last run time.
+
+- Location: `C:\Windows\Prefetch`
+- Pattern: `PROGRAM.EXE-XXXXXXXX.pf`
+- Useful properties: executable path, run count, last execution timestamp, referenced files/DLLs, volume serial number
+
+### Inspecting Prefetch files
+
+Windows PowerShell:
+
+Last 20 write times:
+```powershell
+Get-ChildItem C:\Windows\Prefetch\*.pf | Select-Object Name,LastWriteTime,Length -first 20 | sort-object -property lastwritetime -descending
+```
+Parsing for a specific time range:
+
+```powershell
+$start = Get-Date "2025-06-07 10:00:00"
+$end   = Get-Date "2025-06-07 10:05:00"
+
+Get-ChildItem C:\Windows\Prefetch\*.pf |
+    Where-Object {
+        $_.LastWriteTime -ge $start -and
+        $_.LastWriteTime -lt $end
+    } |
+    Select-Object Name, LastWriteTime, Length |
+    Sort-Object LastWriteTime -Descending
+```
+
+### What to look for
+
+- Suspicious or unexpected executable names
+- High run counts for malware tools
+- Last run times around the incident window
+- Executable paths not matching normal system or application locations
+- Referenced files and DLLs that indicate the process behavior
+
+> Prefetch is one indicator of execution. Always correlate it with process listings, logs, and other host artifacts.
+
+# Packet Capture / Wireshark
+
+Wireshark is the standard tool for analyzing packet capture files (`.pcap`, `.pcapng`). Use it to inspect network traffic, identify suspicious flows, and reconstruct sessions.
+
+### Capturing traffic
+
+Linux/Unix:
+```bash
+sudo tcpdump -i eth0 -w capture.pcap
+```
+
+### Opening and filtering captures
+
+Open the file in Wireshark:
+```bash
+wireshark capture.pcap
+```
+
+Common display filters:
+```text
+ip.addr == 10.0.0.5
+tcp.port == 80
+dns
+http
+tls
+tcp.analysis.retransmission
+```
+
+### Analysis workflow
+
+1. Use `Statistics` > `Protocol Hierarchy` to see which protocols are present.
+2. Use `Statistics` > `Conversations` and `Endpoints` to identify top talkers.
+3. Use `Follow` > `TCP Stream` or `UDP Stream` to reconstruct sessions.
+4. Inspect packet payloads for suspicious domains, URIs, credentials, or file transfers.
+5. Note timestamps, source/destination IPs, ports, and protocol anomalies.
+
+> Packet captures are raw evidence. Document what you find and verify with endpoint or log data before drawing conclusions.
 
 # Security Onion
 
