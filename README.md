@@ -631,14 +631,12 @@ Get-ChildItem C:\Windows\Prefetch\*.pf | Select-Object Name,LastWriteTime,Length
 ```
 Parsing for a specific time range:
 
+**Disclaimer** for the following command, update the time range below and ensure the date time format matches the logs.  It could be yyyy-mm-dd hh:mm:ss or mm/dd/yyyy hh:mm:ss
 ```powershell
-$start = Get-Date "2025-06-07 10:00:00"
-$end   = Get-Date "2025-06-07 10:05:00"
-
 Get-ChildItem C:\Windows\Prefetch\*.pf |
     Where-Object {
-        $_.LastWriteTime -ge $start -and
-        $_.LastWriteTime -lt $end
+        $_.LastWriteTime -ge "6/7/2026 7:00:00 PM" -and
+        $_.LastWriteTime -lt "6/7/2026 8:05:00 PM"
     } |
     Select-Object Name, LastWriteTime, Length |
     Sort-Object LastWriteTime -Descending
