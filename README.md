@@ -663,6 +663,16 @@ Linux/Unix:
 sudo tcpdump -i eth0 -w capture.pcap
 ```
 
+### Capturing with the Wireshark GUI
+
+1. Open Wireshark.
+2. Select the network interface you want to capture from (e.g. `eth0`, `wlan0`, `Ethernet`).
+3. Optionally click `Capture` > `Options` and set a capture filter (for example `host 10.0.0.5` or `tcp port 80`).
+4. Click the blue shark fin icon or `Start` to begin capturing.
+5. Monitor live packet traffic and use display filters while capturing if needed.
+6. Click the red square `Stop` button when you have enough data.
+7. Save the capture via `File` > `Save As...` and choose `.pcap` or `.pcapng`.
+
 ### Opening and filtering captures
 
 Open the file in Wireshark:
